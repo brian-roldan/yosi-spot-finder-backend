@@ -6,7 +6,7 @@
 	<groupId>io.hatdog.ysf</groupId>
 	<artifactId>yosi-spot-finder-backend</artifactId>
 	<version>0.0.1</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 
 	<name>yosi-spot-finder-backend</name>
 	<description>API for finding a spot to smoke</description>
