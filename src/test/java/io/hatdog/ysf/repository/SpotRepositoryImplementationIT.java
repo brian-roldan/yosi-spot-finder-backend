@@ -24,8 +24,8 @@ public class SpotRepositoryImplementationIT {
 	@Autowired SpotRepositoryImplementation spotRepositoryImplementation;
 	
 	@Test
-	public void basicCheckClosestTest(){
-		ListSpotArgument argument = ListSpotArgument.builder().latitude(new BigDecimal(14.553628)).longitude(new BigDecimal(121.048930)).build();
+	public void insideTriangleCheckClosestTest(){
+		ListSpotArgument argument = ListSpotArgument.builder().latitude(new BigDecimal("14.553016")).longitude(new BigDecimal("121.049116")).build();
 		
 		List<Spot> spots = spotRepositoryImplementation.getNearbySpots(argument);
 		
@@ -37,4 +37,17 @@ public class SpotRepositoryImplementationIT {
 		assertEquals(new BigDecimal("121.049462"), closestSpot.getLongitude());
 	}
 	
+	@Test
+	public void outsideTriangleCheckClosestTest(){
+		ListSpotArgument argument = ListSpotArgument.builder().latitude(new BigDecimal("14.558664")).longitude(new BigDecimal("121.056214")).build();
+		
+		List<Spot> spots = spotRepositoryImplementation.getNearbySpots(argument);
+		
+		assertNotNull(spots);
+		assertEquals(9, spots.size());
+		
+		Spot closestSpot = spots.get(0);
+		assertEquals(new BigDecimal("14.556754"), closestSpot.getLatitude());
+		assertEquals(new BigDecimal("121.054445"), closestSpot.getLongitude());
+	}
 }
