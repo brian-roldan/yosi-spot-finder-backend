@@ -1,9 +1,8 @@
 package io.hatdog.ysf.repository;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,13 +21,14 @@ import org.mockito.Mock;
 
 import io.hatdog.ysf.controller.argument.ListSpotArgument;
 import io.hatdog.ysf.domain.Spot;
-import io.hatdog.ysf.repository.SpotRepositoryImplementation;
+import io.hatdog.ysf.repository.query_builder.SpotRepositoryQueryBuilder;
 
 public class SpotRepositoryImplementationTest {
 
 	SpotRepositoryImplementation spotRepository;
 	
 	@Mock SessionFactory sessionFactory;
+	@Mock SpotRepositoryQueryBuilder queryBuilder;
 	@Mock Session session;
 	@Mock SQLQuery sqlQuery;
 	
@@ -38,7 +38,7 @@ public class SpotRepositoryImplementationTest {
 	@Before	
 	public void setUp(){
 		initMocks(this);
-		spotRepository = new SpotRepositoryImplementation(sessionFactory);
+		spotRepository = new SpotRepositoryImplementation(sessionFactory, queryBuilder);
 	}
 	
 	@Test
@@ -47,7 +47,7 @@ public class SpotRepositoryImplementationTest {
 		ListSpotArgument argument = ListSpotArgument.builder().latitude(TEST_LATITUDE).longitude(TEST_LONGITUDE).build();
 		
 		when(sessionFactory.openSession()).thenReturn(session);
-		when(session.createSQLQuery(anyString())).thenReturn(sqlQuery);
+		when(queryBuilder.buildGetNearbySpotQuery(any(), any())).thenReturn(sqlQuery);
 		when(sqlQuery.list()).thenReturn(Arrays.asList(new Spot(), new Spot()));
 		
 		List<Spot> spots = spotRepository.getNearbySpots(argument);
@@ -56,22 +56,32 @@ public class SpotRepositoryImplementationTest {
 		
 		verify(sessionFactory, times(1)).openSession();
 		verify(session, times(1)).beginTransaction();
-		verify(session, times(1)).close();
-		
-		verify(session, times(1)).createSQLQuery(anyString());
-		verify(sqlQuery, times(1)).addEntity(eq(Spot.class));
-		verify(sqlQuery, atLeast(1)).setBigDecimal(anyString(), eq(argument.getLongitude()));
-		verify(sqlQuery, atLeast(1)).setBigDecimal(anyString(), eq(argument.getLatitude()));
+		verify(queryBuilder, times(1)).buildGetNearbySpotQuery(eq(argument), eq(session));		
 		verify(sqlQuery, times(1)).list();
+		verify(session, times(1)).close();
 		
 	}
 	
-	@Test(expected=NullPointerException.class)
-	public void nullArgument(){
-		when(sessionFactory.openSession()).thenReturn(session);
-		when(session.createSQLQuery(anyString())).thenReturn(sqlQuery);
+	@Test
+	public void basicPositiveWithLimitTest(){
 		
-		spotRepository.getNearbySpots(null);
+		int recordLimit = 2;
+		ListSpotArgument argument = ListSpotArgument.builder().latitude(TEST_LATITUDE).longitude(TEST_LONGITUDE).recordLimit(recordLimit).build();
+		
+		when(sessionFactory.openSession()).thenReturn(session);
+		when(queryBuilder.buildGetNearbySpotQuery(any(), any())).thenReturn(sqlQuery);
+		when(sqlQuery.list()).thenReturn(Arrays.asList(new Spot(), new Spot()));
+		
+		List<Spot> spots = spotRepository.getNearbySpots(argument);
+
+		assertNotNull(spots);
+		
+		verify(sessionFactory, times(1)).openSession();
+		verify(session, times(1)).beginTransaction();
+		verify(queryBuilder, times(1)).buildGetNearbySpotQuery(eq(argument), eq(session));		
+		verify(sqlQuery, times(1)).list();
+		verify(session, times(1)).close();
+		
 	}
 	
 }

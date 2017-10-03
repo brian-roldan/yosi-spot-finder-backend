@@ -9,19 +9,18 @@ import org.springframework.stereotype.Repository;
 
 import io.hatdog.ysf.controller.argument.ListSpotArgument;
 import io.hatdog.ysf.domain.Spot;
+import io.hatdog.ysf.repository.query_builder.SpotRepositoryQueryBuilder;
 
 @Repository
 public class SpotRepositoryImplementation implements SpotRepository {
-
-	private final String GET_NEARBY_SPOT_SQL = "SELECT *, (3956 * 2 * ASIN(SQRT( POWER(SIN((:latitude - ABS(dest.latitude)) * pi()/180 / 2),2) + COS(:latitude * pi()/180 ) * COS(ABS(dest.latitude) *  pi()/180) * POWER(SIN((:longitude - dest.longitude) *  pi()/180 / 2), 2) ))) AS distance FROM spot dest ORDER BY distance ASC";
-	private final String GET_NEARBY_SPOT_SQL_LATITUDE_PARAMETER = "latitude";
-	private final String GET_NEARBY_SPOT_SQL_LONGITUDE_PARAMETER = "longitude";
 	
-	private SessionFactory sessionFactory;
+	private final SessionFactory sessionFactory;
+	private final SpotRepositoryQueryBuilder queryBuilder;
 	
-	public SpotRepositoryImplementation(SessionFactory sessionFactory) {
+	public SpotRepositoryImplementation(SessionFactory sessionFactory, SpotRepositoryQueryBuilder queryBuilder) {
 		super();
 		this.sessionFactory = sessionFactory;
+		this.queryBuilder = queryBuilder;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -31,11 +30,7 @@ public class SpotRepositoryImplementation implements SpotRepository {
 		Session session = sessionFactory.openSession();
 		session.beginTransaction();
 		
-		SQLQuery query = session.createSQLQuery(GET_NEARBY_SPOT_SQL);
-		
-		query.addEntity(Spot.class);
-		query.setBigDecimal(GET_NEARBY_SPOT_SQL_LATITUDE_PARAMETER, argument.getLatitude());
-		query.setBigDecimal(GET_NEARBY_SPOT_SQL_LONGITUDE_PARAMETER, argument.getLongitude());
+		SQLQuery query = queryBuilder.buildGetNearbySpotQuery(argument, session);
 		
 		List<Spot> spots = (List<Spot>) query.list();
 		
