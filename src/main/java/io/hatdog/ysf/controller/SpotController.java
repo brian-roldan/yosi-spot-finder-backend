@@ -21,8 +21,9 @@ public class SpotController {
 	}
 
 	@GetMapping("/spots/find")
-	public ListSpotCommand getSpots(@RequestParam(name="latitude") BigDecimal latitude, @RequestParam(name="longitude") BigDecimal longitude){
-		return spotService.getSpots(ListSpotArgument.builder().latitude(latitude).longitude(longitude).build());
+	public ListSpotCommand getSpots(@RequestParam(name="latitude") BigDecimal latitude, @RequestParam(name="longitude") BigDecimal longitude,
+			@RequestParam(name="limit", defaultValue="${ysf.list.spot.default.limit}") Integer recordLimit){
+		return spotService.getSpots(ListSpotArgument.builder().latitude(latitude).longitude(longitude).recordLimit(recordLimit).build());
 	}
 	
 }
